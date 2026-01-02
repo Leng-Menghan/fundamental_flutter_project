@@ -1,0 +1,177 @@
+
+// import '../models/category.dart';
+// import '../models/transaction.dart';
+// import '../models/user.dart';
+
+// User mockUser = User(
+//   name: "Ren Sodalin",
+//   profileImage: "assets/dollar.png",
+//   preferredLanguage: Language.english,
+//   preferredAmountType: AmountType.dollar,
+//   transactions: [
+//     // Expense
+//     Transaction(
+//       title: "Electric Bill",
+//       amount: 50,
+//       category: Category.bill,
+//       type: TransactionType.expense,
+//       date: DateTime.now(),
+//     ),
+//     // Transaction(
+//     //   title: "Clothes",
+//     //   amount: 30,
+//     //   category: Category.clothing,
+//     //   type: TransactionType.expense,
+//     //   date: DateTime(2025, 12, 8),
+//     // ),
+//     // Transaction(
+//     //   title: "Education Fee",
+//     //   amount: 120,
+//     //   category: Category.education,
+//     //   type: TransactionType.expense,
+//     //   date: DateTime(2025, 12, 15),
+//     // ),
+//     // Transaction(
+//     //   title: "Movie",
+//     //   amount: 15,
+//     //   category: Category.entertainment,
+//     //   type: TransactionType.expense,
+//     //   date: DateTime(2025, 12, 12),
+//     // ),
+//     // Transaction(
+//     //   title: "Gym",
+//     //   amount: 25,
+//     //   category: Category.fitness,
+//     //   type: TransactionType.expense,
+//     //   date: DateTime(2025, 12, 5),
+//     // ),
+//     // Transaction(
+//     //   title: "Food",
+//     //   amount: 20,
+//     //   category: Category.food,
+//     //   type: TransactionType.expense,
+//     //   date: DateTime(2025, 12, 20),
+//     // ),
+//     // Transaction(
+//     //   title: "Gift",
+//     //   amount: 40,
+//     //   category: Category.gift,
+//     //   type: TransactionType.expense,
+//     //   date: DateTime(2025, 12, 22),
+//     // ),
+//     // Transaction(
+//     //   title: "Health Care",
+//     //   amount: 35,
+//     //   category: Category.health,
+//     //   type: TransactionType.expense,
+//     //   date: DateTime(2025, 12, 18),
+//     // ),
+//     // Transaction(
+//     //   title: "Furniture",
+//     //   amount: 200,
+//     //   category: Category.furniture,
+//     //   type: TransactionType.expense,
+//     //   date: DateTime(2025, 12, 10),
+//     // ),
+//     // Transaction(
+//     //   title: "Pet Care",
+//     //   amount: 18,
+//     //   category: Category.pet,
+//     //   type: TransactionType.expense,
+//     //   date: DateTime(2025, 12, 25),
+//     // ),
+//     // Transaction(
+//     //   title: "Shopping",
+//     //   amount: 60,
+//     //   category: Category.shopping,
+//     //   type: TransactionType.expense,
+//     //   date: DateTime(2025, 12, 14),
+//     // ),
+//     // Transaction(
+//     //   title: "Transport",
+//     //   amount: 10,
+//     //   category: Category.transportation,
+//     //   type: TransactionType.expense,
+//     //   date: DateTime(2025, 12, 7),
+//     // ),
+//     // Transaction(
+//     //   title: "Travel",
+//     //   amount: 300,
+//     //   category: Category.travel,
+//     //   type: TransactionType.expense,
+//     //   date: DateTime(2025, 12, 28),
+//     // ),
+//     // Transaction(
+//     //   title: "Travel",
+//     //   amount: 300,
+//     //   category: Category.travel,
+//     //   type: TransactionType.expense,
+//     //   date: DateTime.now(),
+//     // ),
+//     // Transaction(
+//     //   title: "Other Expense",
+//     //   amount: 12,
+//     //   category: Category.otherExpense,
+//     //   type: TransactionType.expense,
+//     //   date: DateTime(2025, 12, 3),
+//     // ),
+
+//     // Income
+//     Transaction(
+//       title: "Allowance",
+//       amount: 100,
+//       category: Category.allowance,
+//       type: TransactionType.income,
+//       date: DateTime.now(),
+//     ),
+//     // Transaction(
+//     //   title: "Award",
+//     //   amount: 80,
+//     //   category: Category.award,
+//     //   type: TransactionType.income,
+//     //   date: DateTime(2025, 12, 6),
+//     // ),
+//     // Transaction(
+//     //   title: "Bonus",
+//     //   amount: 150,
+//     //   category: Category.bonus,
+//     //   type: TransactionType.income,
+//     //   date: DateTime(2025, 12, 11),
+//     // ),
+//     // Transaction(
+//     //   title: "Dividend",
+//     //   amount: 60,
+//     //   category: Category.dividend,
+//     //   type: TransactionType.income,
+//     //   date: DateTime(2025, 12, 19),
+//     // ),
+//     // Transaction(
+//     //   title: "Investment",
+//     //   amount: 200,
+//     //   category: Category.investment,
+//     //   type: TransactionType.income,
+//     //   date: DateTime(2025, 12, 16),
+//     // ),
+//     // Transaction(
+//     //   title: "Lottery",
+//     //   amount: 500,
+//     //   category: Category.lottery,
+//     //   type: TransactionType.income,
+//     //   date: DateTime(2025, 12, 23),
+//     // ),
+//     // Transaction(
+//     //   title: "Salary",
+//     //   amount: 1200,
+//     //   category: Category.salary,
+//     //   type: TransactionType.income,
+//     //   date: DateTime(2025, 12, 28),
+//     // ),
+//     // Transaction(
+//     //   title: "Salary",
+//     //   amount: 1200,
+//     //   category: Category.otherIncome,
+//     //   type: TransactionType.income,
+//     //   date: DateTime(2025, 12, 28),
+//     // ),
+//   ],
+// );
