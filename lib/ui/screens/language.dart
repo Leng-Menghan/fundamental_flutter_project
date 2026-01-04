@@ -1,20 +1,12 @@
 import 'package:flutter/material.dart';
-enum Language{
-  khmer(imageAsset: "assets/cambodia_flag.png", name: "ខ្មែរ / Khmer"),
-  english(imageAsset: "assets/england_flag.png", name: "អង់គ្លេស / English");
-
-  final String imageAsset;
-  final String name;
-  const Language({required this.imageAsset, required this.name});
-}
-class SplashScreen extends StatelessWidget {
-  const SplashScreen({
+import 'package:fundamental_flutter_project/utils/animations_util.dart';
+import '../../data/share_reference.dart';
+import './name.dart';
+import '../../models/user.dart';
+class LanguageScreen extends StatelessWidget {
+  const LanguageScreen({
     super.key,
   });
-
-  void onPress(){
-
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +41,13 @@ class SplashScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(5)
                     )
                   ),
-                  onPressed: () => onPress(), 
+                  onPressed: () async {
+                      await ShareReference.setLanguage(l);
+                      Navigator.pushReplacement(
+                        context,
+                        AnimationUtils.slideTBWithFade(NameScreen())
+                      );
+                  }, 
                   child: Row(
                     children: [
                       Image.asset(l.imageAsset, width: 43,),

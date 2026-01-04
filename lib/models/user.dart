@@ -1,9 +1,11 @@
-import 'package:fundamental_flutter_project/data/database.dart';
+import 'package:fundamental_flutter_project/data/share_reference.dart';
+import 'package:fundamental_flutter_project/data/sqlite.dart';
 
 import '../l10n/app_localization.dart';
 import './category.dart';
 import './budget_goal.dart';
 import './transaction.dart';
+
 
 enum Language{
   khmer(imageAsset: "assets/cambodia_flag.png", name: "ខ្មែរ / Khmer"),
@@ -15,8 +17,8 @@ enum Language{
 }
 
 enum AmountType{
-  riel(imageAsset: "assets/riel.png", name: "Riels"),
-  dollar(imageAsset: "assets/dollar.png", name: "Dollars");
+  riel(imageAsset: "assets/riel.png", name: "រៀល​ / Riels"),
+  dollar(imageAsset: "assets/dollar.png", name: "ដុល្លារ / Dollars");
 
   final String imageAsset;
   final String name;
@@ -40,16 +42,19 @@ class User {
     required this.budgetGoals
   });
 
-  void setName(String newName) {
+  Future<void> setName(String newName) async{
     name = newName;
+    await ShareReference.setName(name);
   }
 
-  void setLanguage(Language lang) {
+  Future<void> setLanguage(Language lang) async{
     preferredLanguage = lang;
+    await ShareReference.setLanguage(lang);
   }
 
-  void setAmountType(AmountType type) {
-    preferredAmountType = type;
+  Future<void> setImage(String image) async{
+    profileImage = image;
+    await ShareReference.setImage(image);
   }
 
   String getLocalizedGreeting(AppLocalizations language) {
@@ -65,9 +70,9 @@ class User {
   
   List<Transaction> getTransactionsDuration({required DateTime start, required DateTime end}){
     List<Transaction> list = transactions.where((t) {
-      final txDate = DateTime(t.date.year, t.date.month, t.date.day);
-      final startDate = DateTime(start.year, start.month, start.day);
-      final endDate = DateTime(end.year, end.month, end.day);
+      DateTime txDate = DateTime(t.date.year, t.date.month, t.date.day);
+      DateTime startDate = DateTime(start.year, start.month, start.day);
+      DateTime endDate = DateTime(end.year, end.month, end.day);
       if (txDate.isBefore(startDate)) return false; 
       if (txDate.isAfter(endDate)) return false; 
       return true;
@@ -76,45 +81,20 @@ class User {
     return list;
   }
 
-  Map<Category, List<Transaction>> groupTransactionsByCategoryAndType(List<Transaction> transactions, TransactionType type) {
-    Map<Category, List<Transaction>> result = {};
-    for (var t in transactions) {
-      if (t.type != type) continue; 
-      if (!result.containsKey(t.category)) {
-        result[t.category] = [];
-      }
-      result[t.category]!.add(t);
-    }
-    return result;
-  }
-
-  List<double> getWeeklyData(List<DateTime> week, TransactionType type) {
-    return week.map((day) {
-      double total = transactions
-          .where((tx) =>
-              tx.type == type &&
-              tx.date.year == day.year &&
-              tx.date.month == day.month &&
-              tx.date.day == day.day)
-          .fold(0.0, (sum, tx) => sum + tx.amount);
-      return total;
-    }).toList();
-  }
-
   String getProfileLabel() {
-    final words = name.trim().split(' ');
-    final initials = words.map((word) => word[0].toUpperCase()).join();
+    List<String> words = name.trim().split(' ');
+    String initials = words.map((word) => word[0].toUpperCase()).join();
     return initials;
   }
 
   Future<void> addTransaction(Transaction transaction) async{
     transactions.add(transaction);
-    await DBHelper.insertTransaction(transaction);
+    await Sqlite.insertTransaction(transaction);
   }
 
   Future<void> removeTransaction(String id) async{
     transactions.removeWhere((t) => t.id == id);
-    await DBHelper.deleteTransaction(id);
+    await Sqlite.deleteTransaction(id);
   }
 
   Future<void> updateTransaction(Transaction updated, String id) async{
@@ -122,15 +102,14 @@ class User {
     if (index != -1) {
       transactions[index] = updated; 
     } 
-    await DBHelper.updateTransaction(updated);
+    await Sqlite.updateTransaction(updated);
   }
 
-  List<Transaction> getTransactions({int? year, int? month, int? day, TransactionType? type, Category? category}){
+  List<Transaction> getTransactions({int? year, int? month, int? day, Category? category}){
     List<Transaction> list = transactions.where((t) {
       if (year != null && t.date.year != year) return false;
       if (month != null && t.date.month != month) return false;
       if (day != null && t.date.day != day) return false;
-      if (type != null && t.type != type) return false;
       if (category != null && t.category != category) return false;
       return true;
     }).toList();
@@ -161,10 +140,9 @@ class User {
     return list;
   }
 
-  double getTotalBalance({List<Transaction>? transactionList}){
+  double getTotalBalance(){
     double total = 0;
-    final listToSum = transactionList ?? transactions;
-    for(Transaction t in listToSum){
+    for(Transaction t in transactions){
       if(t.isIncome){
         total += t.amount;
       }else{
@@ -174,15 +152,14 @@ class User {
     return total;
   }
 
-
   Future<void> addBudgetGoal(BudgetGoal budgetGoal) async{
     budgetGoals.add(budgetGoal);
-    await DBHelper.insertBudgetGoal(budgetGoal);
+    await Sqlite.insertBudgetGoal(budgetGoal);
   }
 
   Future<void> removeBudgetGoal(String id) async{
     budgetGoals.removeWhere((b) => b.id == id);
-    await DBHelper.deleteBudgetGoal(id);
+    await Sqlite.deleteBudgetGoal(id);
   }
 
   Future<void> updateBudgetGoal(BudgetGoal updated, String id) async{
@@ -190,7 +167,7 @@ class User {
     if(index != -1){
       budgetGoals[index] = updated;
     }
-    await DBHelper.updateBudgetGoal(updated);
+    await Sqlite.updateBudgetGoal(updated);
   }
 
   List<BudgetGoal> getBudgetGoal({int? year, int? month}){
@@ -199,15 +176,6 @@ class User {
       if (month != null && b.month != month) return false;
       return true;
     }).toList();
-  }
-
-  double getTotalGoal(int year, int month){
-    List<BudgetGoal> budgetGoals = getBudgetGoal(year: year, month: month);
-    double totalGoal = 0;
-    for (BudgetGoal goal in budgetGoals) {
-      totalGoal += goal.goalAmount;
-    }
-    return totalGoal;
   }
 
   double getSpentCategory(int year, int month, Category category){
@@ -224,7 +192,7 @@ class User {
     return totalSpent;
   }
 
-  List<Category> getAvaliableCategories(int year, int month){
+  List<Category> getAvailableleCategories(int year, int month){
     List<BudgetGoal> budgetGoals = getBudgetGoal(year: year, month: month);
     List<Category> usedCategories = budgetGoals.map((g) => g.category).toList();
     List<Category> avaliableCategories = Category.expenseCategories.where((c) => !usedCategories.contains(c)).toList();

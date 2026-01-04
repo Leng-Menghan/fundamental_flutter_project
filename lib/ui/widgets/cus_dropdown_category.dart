@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fundamental_flutter_project/ui/screens/language.dart';
 import '../../models/category.dart';
 import '../../l10n/app_localization.dart';
 import 'input_decoration.dart';
@@ -42,14 +43,14 @@ class CustomDropdownCategory extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Text(c.label, style: textTheme.titleMedium),
+                  Text(c.getLabel(language), style: textTheme.titleMedium),
                 ],
               ),
             );
           }).toList(),
           selectedItemBuilder: (context) {
             return categoryList.map((c) {
-              return Text(c.label, style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.normal));
+              return Text(c.getLabel(language), style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.normal));
             }).toList();
           },
           onChanged: (value) {

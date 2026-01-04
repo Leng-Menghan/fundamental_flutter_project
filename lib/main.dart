@@ -1,22 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'data/database.dart';
+import 'data/share_reference.dart';
+import 'data/sqlite.dart';
 import 'l10n/app_localization.dart';
 import 'models/user.dart';
-import 'ui/navigation_screen.dart';
+import 'ui/screens/budget_goal.dart';
+import 'ui/screens/home.dart';
+import 'ui/screens/profile.dart';
+import 'ui/screens/language.dart';
+import 'ui/screens/statistic.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await DBHelper.initDatabase();
-  User currentUser = User(
-    name: "Leng Menghan",
-    profileImage: "",
-    preferredLanguage: Language.english,
-    preferredAmountType:AmountType.dollar,
-    transactions: await DBHelper.getTransactions(),
-    budgetGoals: await DBHelper.getBudgetGoals(),
-  );
-  runApp(AppRoot(user: currentUser));
+  // await Sqlite.dropDatabase();
+  // await ShareReference.remove();
+  // runApp(
+  //   MaterialApp(
+  //     home: Scaffold(
+  //       body: Center(
+  //         child: Text("Hello"),
+  //       ),
+  //     ),
+  //   )
+  // );
+  bool isCreated = await ShareReference.isCreated();
+  User? user;
+
+  if(isCreated) {
+    Map<String, dynamic> userInfo = await ShareReference.readUserInfo();
+    user = User(
+      name: userInfo['name'],
+      profileImage: "",
+      preferredLanguage: userInfo['language'],
+      preferredAmountType: userInfo['amountType'],
+      transactions: await Sqlite.getTransactions(),
+      budgetGoals: await Sqlite.getBudgetGoals(),
+    );
+  }
+  runApp(MyApp(user: user));
+
+}
+
+class MyApp extends StatelessWidget {
+  final User? user;
+  const MyApp({super.key, required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: user == null ? LanguageScreen() : AppRoot(user: user!),
+    );
+  }
 }
 
 class AppRoot extends StatefulWidget {
@@ -29,6 +64,7 @@ class AppRoot extends StatefulWidget {
 
 class _AppRootState extends State<AppRoot> {
   late Locale _locale;
+  int _currentTabIndex = 0;
 
   @override
   void initState() {
@@ -82,7 +118,69 @@ class _AppRootState extends State<AppRoot> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: Navigation(user: widget.user, onSelectLanguage: changeLanguage),
+      home:Scaffold(
+      body: IndexedStack(
+        index: _currentTabIndex,
+        children: [
+          HomeScreen(key: ValueKey(_currentTabIndex) ,user: widget.user),
+          StatisticScreen(key: ValueKey(_currentTabIndex), user: widget.user),
+          BudgetGoalScreen(user: widget.user),
+          ProfileScreen(
+            user: widget.user, 
+            onSelectLanguage: changeLanguage
+          ),
+        ],
+      ),
+      extendBody: true,
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20), 
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white, 
+            borderRadius: BorderRadius.circular(20), 
+            border: Border.all(color: const Color.fromARGB(255, 239, 238, 238), width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 10,
+                offset: Offset(0, 4), 
+              ),
+            ]
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20), 
+            child: BottomNavigationBar(
+              elevation: 10,
+              type: BottomNavigationBarType.fixed, 
+              selectedItemColor: Color(0xFF438883),
+              unselectedItemColor: Colors.grey,
+              currentIndex: _currentTabIndex,
+              onTap: (index) {
+                setState(() => _currentTabIndex = index);
+              },
+              items: const [
+                BottomNavigationBarItem(icon: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Icon(Icons.house_rounded),
+                ), label: 'Home'),
+                BottomNavigationBarItem(icon: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Icon(Icons.bar_chart_rounded),
+                ), label: 'Statistic'),
+                BottomNavigationBarItem(icon: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Icon(Icons.track_changes),
+                ), label: 'Budget Goal'),
+                BottomNavigationBarItem(icon: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Icon(Icons.person),
+                ), label: 'Profile'),
+              ],
+            ),
+          )
+        )
+      )
+    ),
     );
   }
 }

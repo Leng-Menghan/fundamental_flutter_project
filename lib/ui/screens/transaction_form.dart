@@ -10,8 +10,10 @@ import '../widgets/cus_textfield.dart';
 import '../widgets/transaction_filter_button.dart';
 
 class TransactionFormScreen extends StatefulWidget {
+  final String amountLabel;
+  final DateTime? date;
   final Transaction? editTransaction;
-  const TransactionFormScreen({super.key, this.editTransaction});
+  const TransactionFormScreen({super.key, required this.amountLabel, this.editTransaction, this.date});
 
   @override
   State<TransactionFormScreen> createState() => _TransactionFormScreenState();
@@ -36,6 +38,10 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       amountController.text = widget.editTransaction!.amount.toString();
       selectedDate = widget.editTransaction!.date;
       dateController.text = DateFormat("EEE, dd MMM yyyy").format(widget.editTransaction!.date);
+    }
+    if(widget.date != null){
+      selectedDate = widget.date;
+      dateController.text = DateFormat("EEE, dd MMM yyyy").format(widget.date!);
     }
   }
 
@@ -111,7 +117,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     dateController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -183,7 +189,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                       label: language.amount.toUpperCase(),
                       hintText: language.enterAmount,
                       text: amountController,
-                      prefix: "\$ ",
+                      isNumInput: true,
+                      prefix: "${widget.amountLabel} ",
                       validator: (value)=> validateAmount(value, language),
                     ),
                     const SizedBox(height: 20),

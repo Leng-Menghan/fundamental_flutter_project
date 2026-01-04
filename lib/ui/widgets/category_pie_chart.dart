@@ -9,11 +9,10 @@ import 'category_item.dart';
 import 'transaction_filter_button.dart';
 
 class CategoryPieChart extends StatefulWidget {
-  final User user;
-  final DateTime start;
-  final DateTime end;
-  final VoidCallback isRefresh;
-  const CategoryPieChart({super.key, required this.user, required this.start, required this.end, required this.isRefresh});
+  final String amountLabel;
+  final List<Transaction> transactions;
+  final Function(Category, List<Transaction>, TransactionType) onTapCategory;
+  const CategoryPieChart({super.key, required this.amountLabel ,required this.transactions, required this.onTapCategory});
 
   @override
   State<CategoryPieChart> createState() => _CategoryPieChartState();
@@ -22,33 +21,27 @@ class CategoryPieChart extends StatefulWidget {
 class _CategoryPieChartState extends State<CategoryPieChart> {
   TransactionType filter = TransactionType.income;
 
-  void onTapCategory(Category category, List<Transaction> list, TransactionType type) async{
-    bool? isChanged = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => InspectCategory(
-          user: widget.user,
-          category: category,
-          transactions: list,
-          type: type,
-        ),
-      ),
-    );
-    if(isChanged == true){
-      widget.isRefresh();
+  double get totalAmount => widget.transactions.fold(0.0, (sum, t) => sum + (filter == TransactionType.income ? (t.isIncome ? t.amount : 0) : (t.isExpense ? t.amount : 0)));
+  List<Transaction> get filtered => widget.transactions.where((t) => t.type == filter).toList();
+
+  Map<Category, List<Transaction>> get grouped {
+    Map<Category, List<Transaction>> result = {};
+    for(Transaction t in filtered){
+      if (!result.containsKey(t.category)) {
+        result[t.category] = [];
+      }
+      result[t.category]!.add(t);
     }
+    return result;
   }
-  List<Transaction> get transactions => widget.user.getTransactionsDuration(start: widget.start, end: widget.end);
-  double get totalAmount => widget.user.getTotalAmountByType(transactionList: transactions, type: filter);
-  Map<Category, List<Transaction>> get grouped => widget.user.groupTransactionsByCategoryAndType(transactions, filter);
-  
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorTheme = Theme.of(context).colorScheme;
     final language = AppLocalizations.of(context)!;
 
-    if (transactions.isEmpty) return const SizedBox();
+    if (widget.transactions.isEmpty) return const SizedBox();
 
     return Column(
       children: [
@@ -79,7 +72,7 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
                             SnackBar(
                               duration: Duration(seconds: 1),
                               behavior: SnackBarBehavior.floating,
-                              content: Text(category.label)
+                              content: Text(category.getLabel(language))
                               ),
                           );
                         }
@@ -105,13 +98,14 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
               double amount = list.fold(0.0, (sum, t) => sum + t.amount);
               String percentage = "${((amount / totalAmount) * 100).round()}%";
               return GestureDetector(
-                onTap: () => onTapCategory(category, list, filter),
+                onTap: () => widget.onTapCategory(category, list, filter),
                 child: CategoryItem(
                   category: category, 
                   type: filter, 
                   percentage: percentage, 
                   amount: amount, 
-                  transactionCount: list.length
+                  transactionCount: list.length, 
+                  amountLabel: widget.amountLabel,
                 )
               );
             })

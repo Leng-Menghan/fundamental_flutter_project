@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:fundamental_flutter_project/utils/animations_util.dart';
+import '../../models/category.dart';
 import '../widgets/calender_statistic.dart';
 import '../widgets/cus_month_switcher.dart';
 import '../widgets/cus_week_switcher.dart';
@@ -7,6 +9,8 @@ import '../widgets/header.dart';
 import '../widgets/dashboard_amount.dart';
 import '../widgets/transaction_bar_chart.dart';
 import '../../l10n/app_localization.dart';
+import 'inspect_category.dart';
+import 'inspect_statistic.dart';
 import 'transaction_form.dart';
 import '../../models/transaction.dart';
 import '../../models/user.dart';
@@ -24,55 +28,94 @@ class StatisticScreen extends StatefulWidget {
 }
 
 class _StatisticScreenState extends State<StatisticScreen> {
-  DateTime _focusedDay = DateTime.now();
-  DateTime startOfWeek = DateTime.now().subtract(Duration(days: DateTime.now().weekday % 7));
   Filter filter = Filter.week;
+  DateTime focusedDay = DateTime.now();
+  DateTime startOfWeek = DateTime.now().subtract(Duration(days: DateTime.now().weekday % 7));
+  late List<Transaction> transactions;
 
-  void isRefresh(){
-    setState(() {});
+  DateTime get start => filter == Filter.month ? DateTime(focusedDay.year, focusedDay.month, 1) : startOfWeek;
+  DateTime get end => filter == Filter.month ? DateTime(focusedDay.year, focusedDay.month + 1, 0) : startOfWeek.add(Duration(days: 6));
+  double get totalIncome => transactions.fold(0.0, (sum, t) => sum + (t.isIncome ? t.amount : 0));
+  double get totalExpense => transactions.fold(0.0, (sum, t) => sum + (t.isExpense ? t.amount : 0));
+  String get amountLabel => widget.user.preferredAmountType == AmountType.dollar ? "\$" : "៛";
+
+  @override
+  void initState(){
+    transactions = widget.user.getTransactionsDuration(start: start, end: end);
+    super.initState();
   }
 
   void onCreate() async {
     Transaction? newTransaction = await Navigator.push<Transaction>(
       context,
-      MaterialPageRoute(
-        builder: (context) => TransactionFormScreen(),
-      ),
+      AnimationUtils.scaleWithFade(TransactionFormScreen(amountLabel: amountLabel,))
     );
     if(newTransaction != null){
       await widget.user.addTransaction(newTransaction);
-      setState(() {});
+      setState(() {
+        transactions.add(newTransaction);
+      });
     }
   }
 
   void onBack(){
     setState(() {
-      _focusedDay = DateTime(_focusedDay.year, _focusedDay.month - 1);
+      focusedDay = DateTime(focusedDay.year, focusedDay.month - 1);
+      transactions = widget.user.getTransactionsDuration(start: start, end: end);
     });                  
   }
 
     void onNext(){
     setState(() {
-      _focusedDay = DateTime(_focusedDay.year, _focusedDay.month + 1);
+      focusedDay = DateTime(focusedDay.year, focusedDay.month + 1);
+      transactions = widget.user.getTransactionsDuration(start: start, end: end);
     });                  
   }
 
   void onNextWeek() {
     setState(() {
       startOfWeek = startOfWeek.add(Duration(days: 7));
+      transactions = widget.user.getTransactionsDuration(start: start, end: end);
     });
   }
 
   void onPrevWeek() {
     setState(() {
       startOfWeek = startOfWeek.subtract(Duration(days: 7));
+      transactions = widget.user.getTransactionsDuration(start: start, end: end);
     });
   }
-  DateTime get start => filter == Filter.month ? DateTime(_focusedDay.year, _focusedDay.month, 1) : startOfWeek;
-  DateTime get end => filter == Filter.month ? DateTime(_focusedDay.year, _focusedDay.month + 1, 0) : startOfWeek.add(Duration(days: 6));
-  List<Transaction> get transactions =>  widget.user.getTransactionsDuration(start: start, end: end);
-  double get totalIncome => widget.user.getTotalAmountByType(transactionList: transactions, type: TransactionType.income);
-  double get totalExpense => widget.user.getTotalAmountByType(transactionList: transactions, type: TransactionType.expense);
+
+  void onTapStatistic(DateTime initialDate, TransactionType? type) async{
+    bool? isChanged = await Navigator.of(context).push(
+      AnimationUtils.slideTBWithFade(InspectStatistic(user: widget.user,initialDate: initialDate, type: type,))
+    );
+    if(isChanged == true){
+      setState(() {
+        transactions = widget.user.getTransactionsDuration(start: start, end: end);
+      });
+    }
+  }
+
+  void onTapCategory(Category category, List<Transaction> list, TransactionType type) async{
+    bool? isChanged = await Navigator.push<bool>(
+      context,
+      AnimationUtils.slideTBWithFade(
+        InspectCategory(
+          user: widget.user,
+          category: category,
+          transactions: list,
+          type: type,
+        ),
+      )
+    );
+    if(isChanged == true){
+      setState(() {
+        transactions = widget.user.getTransactionsDuration(start: start, end: end);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -117,7 +160,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       filter == Filter.month ? 
-                        CustomMonthSwitcher(onBack:onBack, date: _focusedDay, onNext:onNext) : 
+                        CustomMonthSwitcher(onBack:onBack, date: focusedDay, onNext:onNext) : 
                         CustomWeekSwitcher(onNext: onNextWeek, onBack: onPrevWeek, startDay: startOfWeek),
                       SizedBox(
                         width: 110,
@@ -138,13 +181,14 @@ class _StatisticScreenState extends State<StatisticScreen> {
                           items: [
                             ...Filter.values.map((f) => DropdownMenuItem(
                               value: f,
-                              child: Text(f.name),
+                              child: Text(f == Filter.month ? language.month : language.week),
                             ))
                           ],
                           onChanged: (value) {
                             if (value != null) {
                               setState(() {
                                 filter = value;
+                                transactions = widget.user.getTransactionsDuration(start: start, end: end);
                               });
                             }
                           },
@@ -153,18 +197,29 @@ class _StatisticScreenState extends State<StatisticScreen> {
                     ],
                   ),
                   const SizedBox(height: 15),
-                  DashboardAmount(income: totalIncome, expense: totalExpense),
+                  DashboardAmount(income: totalIncome, expense: totalExpense, amountLabel: amountLabel),
                   const SizedBox(height: 25),
                   filter == Filter.month?
-                    CalenderStatistic(user: widget.user ,date: _focusedDay, onPageChange: (focusedDay) {
-                      setState(() {
-                        _focusedDay = focusedDay; 
-                      });
-                    }, isRefresh: isRefresh,) 
+                    CalenderStatistic(
+                      transactionsMonth: transactions, 
+                      date: focusedDay, 
+                      onPageChange: (focusedDay) {
+                        setState(() {
+                          focusedDay = focusedDay; 
+                        });
+                      }, 
+                      onTapStatistic:(date) => onTapStatistic(date, null), 
+                      amountLabel: amountLabel
+                    ) 
                     : 
-                    WeeklyBarChart(user: widget.user, date: startOfWeek, isRefresh: isRefresh),
+                    WeeklyBarChart(
+                      transactionsWeek: transactions, 
+                      startDayofWeek: startOfWeek, 
+                      onTapStatistic: (date, type)=> onTapStatistic(date, type),
+                      amountLabel: amountLabel,
+                    ),
                   const SizedBox(height: 20),
-                  CategoryPieChart(user: widget.user, start: start, end: end, isRefresh: isRefresh,),
+                  CategoryPieChart(transactions: transactions, onTapCategory: onTapCategory, amountLabel: amountLabel,),
                 ],
               ),
             ),

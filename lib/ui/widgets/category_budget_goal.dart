@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localization.dart';
 import '../../models/category.dart';
+import 'package:intl/intl.dart';
 
 class CategoryBudgetGoal extends StatelessWidget {
+  final String amountLabel;
   final Category category;
   final double goal;
   final double spent;
 
   const CategoryBudgetGoal({
     super.key,
+    required this.amountLabel,
     required this.category,
     required this.goal,
     required this.spent,
@@ -17,6 +21,8 @@ class CategoryBudgetGoal extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorTheme = Theme.of(context).colorScheme;
+    final language = AppLocalizations.of(context)!;
+    
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 7),
       child: Row(
@@ -40,7 +46,7 @@ class CategoryBudgetGoal extends StatelessWidget {
                   ),
                 ),
               title: Text(
-                "${category.label}${spent>goal ? " : Over Budget !!!" : ""}",
+                "${category.getLabel(language)}${spent>goal ? " : Over Budget !!!" : ""}",
                 style: textTheme.titleLarge?.copyWith(
                   color: spent>goal ? Colors.red: colorTheme.onSurface
                 ),
@@ -50,7 +56,7 @@ class CategoryBudgetGoal extends StatelessWidget {
           Expanded(
             flex: 1,
             child: Text(
-              "\$$goal",
+              "$amountLabel${NumberFormat("#,##0").format(goal)}",
               textAlign: TextAlign.center,
               style: textTheme.titleLarge?.copyWith(
                 color: spent > goal ? Colors.red : Colors.blue,
@@ -60,7 +66,7 @@ class CategoryBudgetGoal extends StatelessWidget {
           Expanded(
             flex: 1,
             child: Text(
-              "- \$$spent",
+              "- $amountLabel${NumberFormat("#,##0").format(spent)}",
               textAlign: TextAlign.end,
               style: textTheme.titleLarge?.copyWith(
                 color: Colors.red,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localization.dart';
 import '../../models/user.dart';
+import '../../utils/animations_util.dart';
 import '../widgets/transaction_item.dart';
 import '../../models/transaction.dart';
 import '../../models/category.dart';
@@ -40,9 +42,7 @@ class _InspectCategoryState extends State<InspectCategory> {
   void onEdit(Transaction t) async {
     Transaction? newTransaction = await Navigator.push<Transaction>(
       context,
-      MaterialPageRoute(
-        builder: (context) => TransactionFormScreen(editTransaction: t),
-      ),
+      AnimationUtils.slideBTWithFade(TransactionFormScreen(editTransaction: t, amountLabel: amountLabel,))
     );
     if(newTransaction != null){
       await widget.user.updateTransaction(newTransaction, t.id);
@@ -69,13 +69,14 @@ class _InspectCategoryState extends State<InspectCategory> {
       isChanged = true;
     });
   }
-
+  String get amountLabel => widget.user.preferredAmountType == AmountType.dollar ? "\$" : "៛";
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final textTheme = theme.textTheme;
-
+    final language = AppLocalizations.of(context)!;
+    
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
@@ -112,8 +113,8 @@ class _InspectCategoryState extends State<InspectCategory> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.category.label, style: textTheme.displaySmall),
-                    Text("${widget.type == TransactionType.income ? "+" : "-"}\$ ${NumberFormat("#,##0.00").format(totalAmount)}", style: textTheme.titleLarge?.copyWith(color: widget.type == TransactionType.income ? Colors.green : Colors.red)),
+                    Text(widget.category.getLabel(language), style: textTheme.displaySmall),
+                    Text("${widget.type == TransactionType.income ? "+" : "-"}$amountLabel ${NumberFormat("#,##0.00").format(totalAmount)}", style: textTheme.titleLarge?.copyWith(color: widget.type == TransactionType.income ? Colors.green : Colors.red)),
                   ],
                 ),
               ],
@@ -160,7 +161,8 @@ class _InspectCategoryState extends State<InspectCategory> {
                               transaction: tx, 
                               onEdit: () => onEdit(tx), 
                               onDelete: () => onDelete(tx.id),
-                              onUndo: () => onUndo(index, tx)
+                              onUndo: () => onUndo(index, tx), 
+                              amountLabel: amountLabel,
                             )
                           ],
                         );

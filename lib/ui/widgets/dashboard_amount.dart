@@ -3,11 +3,12 @@ import 'package:intl/intl.dart';
 import '../../l10n/app_localization.dart'; 
 
 class DashboardAmount extends StatelessWidget {
+  final String amountLabel;
   final double total;
   final double income;
   final double expense;
   final bool isTotalExist;
-  const DashboardAmount({super.key, this.total = 0, required this.income, required this.expense, this.isTotalExist = false});
+  const DashboardAmount({super.key, required this.amountLabel, this.total = 0, required this.income, required this.expense, this.isTotalExist = false});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +30,7 @@ class DashboardAmount extends StatelessWidget {
               children: [
                 Text(AppLocalizations.of(context)!.totalBalance, style: textTheme.titleLarge?.copyWith(color: colorTheme.onPrimary)),
                 const SizedBox(height: 5),
-                Text("\$ ${NumberFormat("#,##0.00").format(total)}", style: textTheme.displayLarge?.copyWith(color: colorTheme.onPrimary)),
+                Text("$amountLabel ${NumberFormat("#,##0.00").format(total)}", style: textTheme.displayLarge?.copyWith(color: colorTheme.onPrimary)),
                 const SizedBox(height: 20),
               ],
             ) : SizedBox(),
@@ -54,8 +55,8 @@ class DashboardAmount extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("\$ ${NumberFormat("#,##0.00").format(income)}", style: textTheme.headlineLarge?.copyWith(color: colorTheme.onPrimary)),
-                Text("\$ ${NumberFormat("#,##0.00").format(expense)}", style: textTheme.headlineLarge?.copyWith(color: colorTheme.onPrimary)),
+                Text("$amountLabel ${NumberFormat("#,##0.00").format(income)}", style: textTheme.headlineLarge?.copyWith(color: colorTheme.onPrimary)),
+                Text("$amountLabel ${NumberFormat("#,##0.00").format(expense)}", style: textTheme.headlineLarge?.copyWith(color: colorTheme.onPrimary)),
               ],
             )
           ],

@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../l10n/app_localization.dart';
 import '../../models/transaction.dart';
 
 class InspectTransaction extends StatelessWidget {
+  final String amountLabel;
   final Transaction transaction;
-  final VoidCallback onDelete;
-  final ValueChanged<Transaction> onEdit;
-  const InspectTransaction({super.key, required this.transaction, required this.onDelete, required this.onEdit});
+  const InspectTransaction({super.key, required this.amountLabel,required this.transaction});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final textTheme = theme.textTheme;
-
-    final bool isExpense = transaction.type == TransactionType.expense;
+    final language = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: colors.secondary,
@@ -29,20 +28,9 @@ class InspectTransaction extends StatelessWidget {
           icon: Icon(Icons.arrow_back_ios_rounded, color: colors.onPrimary),
         ),
         title: Text(
-          "Overview",
+          "Overview Transaction",
           style: textTheme.displaySmall?.copyWith(color: colors.onPrimary),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.edit, color: colors.onPrimary),
-            onPressed:() => onEdit(transaction),
-          ),
-          IconButton(
-            icon: Icon(Icons.delete, color: colors.onPrimary),
-            onPressed: onDelete
-          ),
-         SizedBox(width: 8),
-        ],
       ),
       body: Container(
         width: double.infinity,
@@ -62,17 +50,19 @@ class InspectTransaction extends StatelessWidget {
                   child: Image.asset(transaction.category.icon, width: 30, height: 30),
                 ),
                 const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(transaction.title, style: textTheme.displaySmall),
-                    Text(
-                      isExpense ? "Expense" : "Income",
-                      style: textTheme.titleMedium?.copyWith(
-                        color: isExpense ? Colors.red : Colors.green,
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(transaction.title, style: textTheme.displaySmall),
+                      Text(
+                        transaction.isExpense ? "Expense" : "Income",
+                        style: textTheme.titleMedium?.copyWith(
+                          color: transaction.isExpense ? Colors.red : Colors.green,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -80,15 +70,15 @@ class InspectTransaction extends StatelessWidget {
             _buildRow(
               context,
               label: "Category",
-              value: transaction.category.label,
+              value: transaction.category.getLabel(language),
             ),
             const SizedBox(height: 10),
             _buildRow(
               context,
               label: "Amount",
               value:
-                  "${isExpense ? '-' : '+'}\$${transaction.amount.toStringAsFixed(2)}",
-              valueColor: isExpense ? Colors.red : Colors.green,
+                  "${transaction.isExpense ? '-' : '+'}$amountLabel${NumberFormat("#,##0.00").format(transaction.amount)}",
+              valueColor: transaction.isExpense ? Colors.red : Colors.green,
             ),
             const SizedBox(height: 10),
             _buildRow(

@@ -1,12 +1,16 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-
 import '../models/budget_goal.dart';
 import '../models/transaction.dart' as model;
-import '../models/user.dart';
 
-class DBHelper {
+class Sqlite {
   static Database? _db;
+
+  static Future<void> dropDatabase() async{
+    String databasesPath = await getDatabasesPath();
+    String path = join(databasesPath, 'SmartFinance.db');
+    await deleteDatabase(path);
+  }
 
   static Future<void> initDatabase() async {
     String databasesPath = await getDatabasesPath();
@@ -35,20 +39,10 @@ class DBHelper {
             month INTEGER
           )
         ''');
-
-        await db.execute('''
-          CREATE TABLE user(
-            id TEXT PRIMARY KEY,
-            name TEXT,
-            profileImage TEXT,
-            preferredLanguage TEXT,
-            preferredAmountType TEXT
-          )
-        ''');
       },
     );
   }
-
+  
   static Future<Database> get database async{
     if(_db != null) return _db!;
     await initDatabase();
@@ -98,23 +92,4 @@ class DBHelper {
   }
 
 
-  static Future<void> createUser(User user) async {
-    final db = await database;
-    await db.insert('user', {
-      'id': "oneUser",
-      'name': user.name,
-      'profileImage': user.profileImage,
-      'preferredLanguage': user.preferredLanguage.name,
-      'preferredAmountType': user.preferredAmountType.name,
-    },
-    conflictAlgorithm: ConflictAlgorithm.replace, // replace existing row
-    );
-  }
-
-  static Future<Map<String, dynamic>?> getUserInfo() async {
-    final db = await database;
-    final List<Map<String, dynamic>> result = await db.query('user');
-    if(result.isEmpty) return null;
-    return result.first;
-  }
 }

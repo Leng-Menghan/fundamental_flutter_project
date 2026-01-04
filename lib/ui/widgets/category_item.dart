@@ -5,6 +5,7 @@ import '../../models/category.dart';
 import '../../models/transaction.dart';
 
 class CategoryItem extends StatelessWidget {
+  final String amountLabel;
   final Category category;
   final TransactionType type;
   final String percentage;
@@ -12,6 +13,7 @@ class CategoryItem extends StatelessWidget {
   final int transactionCount;
   const CategoryItem({
     super.key,
+    required this.amountLabel,
     required this.category,
     required this.type,
     required this.percentage,
@@ -36,7 +38,7 @@ class CategoryItem extends StatelessWidget {
           height: 25,
         ),
       ),
-      title: Text(category.label, style: textTheme.titleLarge?.copyWith(color: colorTheme.onSurface)),
+      title: Text(category.getLabel(language), style: textTheme.titleLarge?.copyWith(color: colorTheme.onSurface)),
       subtitle: Text(
         percentage,
         style: textTheme.titleMedium?.copyWith(
@@ -49,7 +51,7 @@ class CategoryItem extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
-            "${(type == TransactionType.income) ? "+" : "-"} \$${NumberFormat("#,##0.00").format(amount)}",
+            "${(type == TransactionType.income) ? "+" : "-"} $amountLabel${NumberFormat("#,##0.00").format(amount)}",
             style: textTheme.titleLarge?.copyWith(
               color:(type == TransactionType.income) ? Colors.green : Colors.red,
             ),

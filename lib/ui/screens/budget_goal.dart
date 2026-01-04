@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:fundamental_flutter_project/utils/animations_util.dart';
+import '../../l10n/app_localization.dart';
 import '../widgets/cus_month_switcher.dart';
 import '../../models/user.dart';
 import '../widgets/category_budget_goal.dart';
@@ -19,69 +21,78 @@ class BudgetGoalScreen extends StatefulWidget {
 
 class _BudgetGoalScreenState extends State<BudgetGoalScreen> {
   DateTime _date = DateTime.now();
-  
+  late List<BudgetGoal> budgetGoals;
 
-
-  String getGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour >= 5 && hour < 12) return "Good Morning";
-    if (hour >= 12 && hour < 18) return "Good Afternoon";
-    return "Good Evening";
+  @override
+  void initState(){
+    budgetGoals = widget.user.getBudgetGoal(year: _date.year, month: _date.month);
+    super.initState();
   }
+  double get totalGoal => budgetGoals.fold(0.0, (sum, b) => sum + b.goalAmount);
+  double get totalSpent => widget.user.getTotalSpent(_date.year, _date.month);
 
   void _addBudget() async {
-    List<Category> avaliableCategories = widget.user.getAvaliableCategories(_date.year, _date.month);
+    List<Category> avaliableCategories = widget.user.getAvailableleCategories(_date.year, _date.month);
     final result = await Navigator.push<BudgetGoal>(
       context,
-      MaterialPageRoute(builder: (_) => CreateBudget(date: _date, avaliableCategories: avaliableCategories)),
+      AnimationUtils.rotateWithFade(CreateBudget(date: _date, avaliableCategories: avaliableCategories, amountLabel: amountLabel,))
     );
     if (result != null) {
       await widget.user.addBudgetGoal(result);
-      setState(() {});
+      setState(() {
+        budgetGoals.add(result);
+      });
     }
   }
+
   void _editBudget(BudgetGoal budget) async{
-    List<Category> avaliableCategories = [...widget.user.getAvaliableCategories(_date.year, _date.month), budget.category];
+    List<Category> avaliableCategories = [...widget.user.getAvailableleCategories(_date.year, _date.month), budget.category];
     final result = await Navigator.push<BudgetGoal>(
       context,
-      MaterialPageRoute(builder: (_) => CreateBudget(date: _date, edit: budget, avaliableCategories: avaliableCategories)),
+      AnimationUtils.slideBTWithFade(CreateBudget(date: _date, edit: budget, avaliableCategories: avaliableCategories, amountLabel: amountLabel,))
     );
     if (result != null) {
       await widget.user.updateBudgetGoal(result, budget.id);
-      setState(() {});
+      setState(() {
+        budgetGoals = budgetGoals.map((b) => b.id == budget.id ? result : b).toList();
+      });
     }
   }
 
-  void _onDelete(String id) async{
+  void _onDelete(String id, int index) async{
     await widget.user.removeBudgetGoal(id);
-    setState(() {});
+    setState(() {
+      budgetGoals.removeAt(index);
+    });
   }
 
-  void _onUndo(BudgetGoal g) async{
+  void _onUndo(BudgetGoal g, int index) async{
     await widget.user.addBudgetGoal(g);
-    setState(() {});
+    setState(() {
+      budgetGoals.insert(index, g);
+    });
   }
 
   void _onNextMonth(){
     setState(() {
       _date = DateTime(_date.year, _date.month + 1);
+      budgetGoals = widget.user.getBudgetGoal(year: _date.year, month: _date.month);
     });
   }
 
   void _onPreMonth(){
     setState(() {
       _date = DateTime(_date.year, _date.month - 1);
+      budgetGoals = widget.user.getBudgetGoal(year: _date.year, month: _date.month);
     });
   }
-
+  String get amountLabel => widget.user.preferredAmountType == AmountType.dollar ? "\$" : "៛";
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorTheme = Theme.of(context).colorScheme;
-    final List<BudgetGoal> budgetGoals = widget.user.getBudgetGoal(year: _date.year, month: _date.month);
-    final double totalGoal = widget.user.getTotalGoal(_date.year, _date.month);
-    final double totalSpent = widget.user.getTotalSpent(_date.year, _date.month);
-
+    final language = AppLocalizations.of(context)!;
+    
     return Scaffold(
       appBar: AppBar(
         backgroundColor: colorTheme.secondary,
@@ -109,9 +120,9 @@ class _BudgetGoalScreenState extends State<BudgetGoalScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Header(greeting: "Good Evening", userName: "Ren Sodalin", onPress: _addBudget, profileLabel: "RS",),
+                  Header(greeting: widget.user.getLocalizedGreeting(language), userName: widget.user.name, onPress: _addBudget, profileLabel: widget.user.getProfileLabel(),),
                   const SizedBox(height: 10),
-                  DashboardBudgetGoal(goal: totalGoal, spent: totalSpent),
+                  DashboardBudgetGoal(goal: totalGoal, spent: totalSpent, amountLabel: amountLabel,),
                   const SizedBox(height: 20),
                   CustomMonthSwitcher(onNext: _onNextMonth, onBack: _onPreMonth, date: _date, isBig: true),
                   const SizedBox(height: 15),
@@ -182,7 +193,7 @@ class _BudgetGoalScreenState extends State<BudgetGoalScreen> {
                                 children: [
                                   SlidableAction(
                                     onPressed: (context) {
-                                      _onDelete(goal.id);
+                                      _onDelete(goal.id, index);
                                       ScaffoldMessenger.of(context)
                                         ..clearSnackBars()
                                         ..showSnackBar(
@@ -192,7 +203,7 @@ class _BudgetGoalScreenState extends State<BudgetGoalScreen> {
                                           behavior: SnackBarBehavior.floating,
                                           action: SnackBarAction(
                                             label: 'Undo',
-                                            onPressed: () => _onUndo(goal)
+                                            onPressed: () => _onUndo(goal, index)
                                           ),
                                         )
                                       );
@@ -206,7 +217,8 @@ class _BudgetGoalScreenState extends State<BudgetGoalScreen> {
                               child: CategoryBudgetGoal(
                                 category: goal.category,
                                 goal: goal.goalAmount,
-                                spent: spent,
+                                spent: spent, 
+                                amountLabel: amountLabel,
                               )
                             );
                           },

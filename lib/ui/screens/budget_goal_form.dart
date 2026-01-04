@@ -6,10 +6,11 @@ import '../../models/budget_goal.dart';
 import '../widgets/cus_dropdown_category.dart';
 
 class CreateBudget extends StatefulWidget {
+  final String amountLabel;
   final BudgetGoal? edit;
   final DateTime date;
   final List<Category> avaliableCategories;
-  const CreateBudget({super.key, required this.date, this.edit, required this.avaliableCategories});
+  const CreateBudget({super.key, required this.amountLabel, required this.date, this.edit, required this.avaliableCategories});
 
   @override
   State<CreateBudget> createState() => _CreateBudgetState();
@@ -110,7 +111,7 @@ class _CreateBudgetState extends State<CreateBudget> {
                     text: _amountController, 
                     validator: validateAmount, 
                     isNumInput: true,
-                    prefix: "\$ ",
+                    prefix: "${widget.amountLabel} ",
                   ),
                   const SizedBox(height: 20),
                   CustomDropdownCategory(
