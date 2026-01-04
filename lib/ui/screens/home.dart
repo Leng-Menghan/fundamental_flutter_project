@@ -47,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if(newTransaction != null){
       await widget.user.addTransaction(newTransaction);
       setState(() {
-        transactionsToday.add(newTransaction);
+        transactionsToday.insert(0, newTransaction);
       });
     }
   }
@@ -77,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void onUndo(Transaction t) async{
     await widget.user.addTransaction(t);
     setState(() {
-      transactionsToday.add(t);
+      transactionsToday.insert(0, t);
     });
   }
   String get amountLabel => widget.user.preferredAmountType == AmountType.dollar ? "\$" : "៛";

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:fundamental_flutter_project/utils/animations_util.dart';
 import '../../data/share_reference.dart';
 import '../../data/sqlite.dart';
-import '../../l10n/app_localization.dart';
 import '../../main.dart';
 import '../widgets/cus_textfield.dart';
 import '../../models/user.dart';

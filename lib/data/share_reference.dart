@@ -1,6 +1,5 @@
 import 'package:fundamental_flutter_project/models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/user.dart';
 
 class ShareReference {
   static Future<void> remove() async{

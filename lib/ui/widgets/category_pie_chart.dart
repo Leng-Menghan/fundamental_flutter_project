@@ -1,9 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:fundamental_flutter_project/ui/screens/inspect_category.dart';
 import '../../l10n/app_localization.dart';
 import '../../models/category.dart';
-import '../../models/user.dart';
 import '../../models/transaction.dart';
 import 'category_item.dart';
 import 'transaction_filter_button.dart';
